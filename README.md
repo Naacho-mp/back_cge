@@ -14,6 +14,7 @@ Este proyecto es un backend desarrollado con FastAPI para la gestión de cliente
 ## Configuración y puesta en Marcha
 
 ## Pasos
+1. Descarga o clona el proyecto via GitHub a través del siguiente Link: https://github.com/Naacho-mp/back_cge
 1. Crear un entorno virtual en la raiz del proyecto: Comando a utilizar según Linux/Mac/Windows
 2. Activar el entorno virtual.
 3. Instalar dependencias contenidas en el Archivo "requirements.txt"
