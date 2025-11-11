@@ -1,4 +1,4 @@
-# Sistema de Gestión de Clientes, Medidores, Lecturas y Boletas - CGE - Universidad Católical del Maule
+# Sistema de Gestión de Clientes, Medidores, Lecturas y Boletas - CGE - Universidad Católica del Maule
 
 Este proyecto es un backend desarrollado con FastAPI para la gestión de clientes, medidores, lecturas y generación de boletas. Está diseñado para facilitar operaciones CRUD y cálculos de consumo de manera eficiente y segura.
 
@@ -24,7 +24,7 @@ Este proyecto es un backend desarrollado con FastAPI para la gestión de cliente
    - DB_HOST
    - DB_NAME
 5. De no estar creada la Base de Datos a utilizar, crearla.
-6. Ubicarse en la ubicacion del archivo "main.py"
+6. Entrar a la carpeta del archivo "main.py"
 7. Correr el proyecto mediante el comando "fastapi dev main.py"
 8. Verificar funcionamiento. 
 
