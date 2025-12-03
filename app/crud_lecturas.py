@@ -17,6 +17,8 @@ def create_lectura(db: Session, data: schemas.LecturaConsumoCreate) -> models.Le
         .filter_by(id_medidor=data.id_medidor, anio=data.anio, mes=data.mes)
         .first()
     )
+
+    #validar que no exista una lectura anterior
     if lectura_existente:
         raise HTTPException(status_code=400, detail="Ya existe una lectura para ese medidor, año y mes")
 

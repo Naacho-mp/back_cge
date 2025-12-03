@@ -10,6 +10,18 @@ class EstadoMedidorEnum(str, Enum):
     ACTIVO = "activo"
     INACTIVO = "inactivo"
 
+#---------------------- LOGIN CLIENTE ----------------------
+class ClienteLoginSchema(BaseModel):
+    email_contacto: str
+    password: str
+
+
+class CambiarPasswordSchema(BaseModel):
+    email_contacto: str
+    password_actual: str
+    password_nueva: str
+    confirmar_password: str
+
 
 #----------------------  CLIENTE ---------------------------
 class ClienteSchema(BaseModel):
@@ -43,15 +55,23 @@ class ClienteOut(ClienteSchema):
     id_cliente: str
     created_at: datetime
     updated_at: Optional[datetime]
+    primer_login: bool
 
     class Config:
         from_attributes = True
 
+class LoginResponse(BaseModel):
+    message: str
+    cliente: ClienteOut
+    primer_login: bool
 #--------------------------- MEDIDOR ------------------------------------------
 class MedidorSchema(BaseModel):
     codigo_medidor: str
-    id_cliente: str
+    rut:str
+    #id_cliente:str
     direccion_suministro: str
+    latitud: float
+    longitud: float
     estado: EstadoMedidorEnum = Field(default=EstadoMedidorEnum.ACTIVO)
 
 class MedidorCreate(MedidorSchema):
@@ -71,8 +91,15 @@ class MedidorUpdate(BaseModel):
     direccion_suministro: Optional[str] = None
     estado: Optional[EstadoMedidorEnum] = None
 
-class MedidorOut(MedidorSchema):
+class MedidorOut(BaseModel):
     id_medidor: int
+    codigo_medidor: str
+    id_cliente: str
+    rut: str
+    direccion_suministro: str
+    latitud: float
+    longitud: float
+    estado: EstadoMedidorEnum
     created_at: datetime
     updated_at: Optional[datetime]
 
@@ -105,19 +132,21 @@ class LecturaConsumoUpdate(BaseModel):
 
 class LecturaOut(LecturaConsumoSchema):
     id_lectura: int
+    codigo_medidor: str
     created_at: datetime
 
     class Config:
         from_attributes = True
 
 #------------------------  BOLETA -----------------------------
+
 class BoletaSchema(BaseModel):
-    id_cliente: str
+    rut: str
     anio: int
     mes: int = Field(ge=1, le=12)
 
 class BoletaCreate(BoletaSchema):
-    pass
+    estado: str = "Emitida"
 
 class BoletaOut(BaseModel):
     id_boleta: int
@@ -133,3 +162,11 @@ class BoletaOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+#------------------------  LOGIN-----------------------------
+class LoginSchema(BaseModel):
+    correo: str
+    password: str
+
+

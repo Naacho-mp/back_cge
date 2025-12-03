@@ -1,8 +1,7 @@
-from enum import Enum
 from typing import List
 
 from sqlalchemy.orm import Session
-from app import schemas, crud_clientes
+from app import schemas, crud_clientes, models
 from app.database import get_db
 from fastapi import status, HTTPException, Depends, APIRouter
 from calculos.verificar_rut import validar_rut
@@ -12,10 +11,76 @@ clientes_api = APIRouter(prefix="/api/clientes", tags=["Clientes"]
 )
 
 # ENDPOINTS BASICOS PARA EL CRUD DE CLIENTES
+# LOGIN DE CLIENTE
+@clientes_api.post("/login", response_model=schemas.LoginResponse)
+def login_cliente(data: schemas.ClienteLoginSchema, db: Session = Depends(get_db)):
+
+    # Buscar cliente por correo
+    cliente = db.query(models.Cliente).filter(models.Cliente.email_contacto == data.email_contacto).first()
+
+    if not cliente:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Correo o contraseña incorrectos"
+        )
+
+    # Verificar contraseña
+    if not crud_clientes.verificar_password(data.password, cliente.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Correo o contraseña incorrectos"
+        )
+
+    return {
+        "message": "Inicio de sesión exitoso",
+        "cliente": cliente,
+        "primer_login": cliente.primer_login
+    }
+
+
+# CAMBIAR CONTRASEÑA
+@clientes_api.post("/cambiar-password")
+def cambiar_password(data: schemas.CambiarPasswordSchema, db: Session = Depends(get_db)):
+
+    # Buscar cliente
+    cliente = db.query(models.Cliente).filter(models.Cliente.email_contacto == data.email_contacto).first()
+
+    if not cliente:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cliente no encontrado"
+        )
+
+    # Verificar contraseña actual
+    if not crud_clientes.verificar_password(data.password_actual, cliente.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="La contraseña actual es incorrecta"
+        )
+
+    # Verificar que las contraseñas nuevas coincidan
+    if data.password_nueva != data.confirmar_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Las contraseñas nuevas no coinciden"
+        )
+
+
+    # Actualizar contraseña
+    cliente.password_hash = crud_clientes.crear_password_hash(data.password_nueva)
+    cliente.primer_login = False
+
+    db.commit()
+
+    return {
+        "message": "Contraseña actualizada exitosamente"
+    }
+
 
 #CREAR CLIENTE
 @clientes_api.post("/", response_model=schemas.ClienteOut, status_code=status.HTTP_201_CREATED)
 def create_cliente(data: schemas.ClienteCreate, db: Session = Depends(get_db)):
+    #Verificar igual aca en el backend que se revise el rut con el script validar_rut segun modulo 11
     if not validar_rut(data.rut):
         raise HTTPException(status_code=400, detail="RUT inválido")
 

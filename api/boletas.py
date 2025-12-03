@@ -12,20 +12,24 @@ boletas_api = APIRouter(prefix="/api/boletas", tags=["Boletas"]
 
 # ENDPOINTS BASICOS PARA EL CRUD DE BOLETAS
 
+#LISTAR BOLETAS POR RUT AÑO Y MES
 @boletas_api.get("/", response_model=list[schemas.BoletaOut])
-def listar_boletas(id_cliente: str | None = None, anio: int | None = None,mes: int | None = None,
+def listar_boletas(rut: str | None = None, anio: int | None = None,mes: int | None = None,
     db: Session = Depends(get_db)
 ):
-    return crud_boletas.listar_boletas(db, id_cliente, anio, mes)
+    return crud_boletas.listar_boletas(db, rut, anio, mes)
 
+
+#GENERAR BOLETA
 @boletas_api.post("/", response_model=schemas.BoletaOut)
-def generar_boleta(id_cliente: str,anio: int,mes: int,estado: str,db: Session = Depends(get_db)
+def generar_boleta(data: schemas.BoletaCreate,db: Session = Depends(get_db)
 ) -> schemas.BoletaOut:
 
-    boleta = crud_boletas.generar_boleta(db=db, id_cliente=id_cliente, anio=anio, mes=mes, estado=estado)
+    boleta = crud_boletas.generar_boleta(db=db,rut=data.rut,anio=data.anio,mes=data.mes,estado=data.estado
+    )
     return boleta
 
-
+#DESCARGAR BOLETA
 @boletas_api.get("/boleta/{id_cliente}/{anio}/{mes}/pdf")
 def descargar_boleta_pdf(id_cliente: str, anio: int, mes: int, db: Session = Depends(get_db)):
     boleta = db.query(Boleta).filter_by(id_cliente=id_cliente, anio=anio, mes=mes).first()

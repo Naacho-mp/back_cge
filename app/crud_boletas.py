@@ -9,12 +9,19 @@ from calculos.total_a_pagar import calcular_montos
 
 #FUNCIONES TIPO CRUD PARA COMUNICARSE CON LA BD VIA SQLALCHEMY ORM
 
-def listar_boletas(db: Session, id_cliente: str | None = None, anio: int | None = None, mes: int | None = None):
+def listar_boletas(db: Session, rut: str | None = None, anio: int | None = None, mes: int | None = None):
 
     query = db.query(Boleta)
 
-    if id_cliente:
-        query = query.filter(Boleta.id_cliente == id_cliente)
+    if rut:
+        cliente = db.query(Cliente).filter(Cliente.rut == rut).first()
+        if not cliente:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Cliente con RUT {rut} no existe"
+            )
+        query = query.filter(Boleta.id_cliente == cliente.id_cliente)
+
     if anio:
         query = query.filter(Boleta.anio == anio)
     if mes:
@@ -23,14 +30,14 @@ def listar_boletas(db: Session, id_cliente: str | None = None, anio: int | None 
     return query.order_by(Boleta.anio.desc(), Boleta.mes.desc()).all()
 
 
-def generar_boleta(db: Session, id_cliente: str, anio: int, mes: int, estado: str) -> Boleta:
-    cliente = db.get(Cliente, id_cliente)
+def generar_boleta(db: Session, rut: str, anio: int, mes: int, estado: str) -> Boleta:
+    cliente = db.query(Cliente).filter(Cliente.rut == rut).first()
     if not cliente:
-        raise HTTPException(status_code=404, detail=f"Cliente con id {id_cliente} no existe")
+        raise HTTPException(status_code=404, detail=f"Cliente con Rut {rut} no existe")
 
     # Evitar duplicados
     boleta_existente = db.query(Boleta).filter_by(
-        id_cliente=id_cliente,
+        id_cliente=cliente.id_cliente,
         anio=anio,
         mes=mes
     ).first()
@@ -60,13 +67,13 @@ def generar_boleta(db: Session, id_cliente: str, anio: int, mes: int, estado: st
     if not tiene_lecturas:
         raise HTTPException(
             status_code=400,
-            detail=f"No existen lecturas registradas para el cliente {id_cliente} en {mes}/{anio}."
+            detail=f"No existen lecturas registradas para el cliente {rut} en {mes}/{anio}."
         )
 
     montos = calcular_montos(Decimal(kwh_total))
 
     boleta = Boleta(
-        id_cliente=id_cliente,
+        id_cliente=cliente.id_cliente,
         anio=anio,
         mes=mes,
         kwh_total=kwh_total,
@@ -90,6 +97,14 @@ def generar_boleta_pdf(boleta) -> bytes:
     c = canvas.Canvas(buffer, pagesize=A4)
     w, h = A4
 
+    meses = {
+        1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril',
+        5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
+        9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
+    }
+
+    nombre_mes = meses.get(boleta.mes, str(boleta.mes))
+
     # Título
     c.setFont("Helvetica-Bold", 16)
     c.drawString(150, h - 90, f"Boleta de Consumo Electricidad (CGE)")
@@ -106,7 +121,7 @@ def generar_boleta_pdf(boleta) -> bytes:
     c.drawString(50, 640, f"ID Cliente: {boleta.id_cliente}")
 
     c.drawString(50, 610, f"Periodo (Año): {boleta.anio}")
-    c.drawString(50, 580, f"Periodo (Mes): {boleta.mes}")
+    c.drawString(50, 580, f"Periodo (Mes): {nombre_mes}")
 
     c.drawString(50, 550, f"Kwh Total: {boleta.kwh_total}")
 

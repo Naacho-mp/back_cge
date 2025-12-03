@@ -4,18 +4,22 @@ from . import models, schemas
 
 #FUNCIONES TIPO CRUD PARA COMUNICARSE CON LA BD VIA SQLALCHEMY ORM
 def create_medidor(db: Session, data: schemas.MedidorCreate) -> models.Medidor:
-    cliente = db.get(models.Cliente, data.id_cliente)
+    # Buscar cliente por RUT
+    cliente = db.query(models.Cliente).filter(models.Cliente.rut == data.rut).first()
     if not cliente:
-        raise HTTPException(status_code=404, detail=f"El Cliente con id {data.id_cliente} no se ha encontrado")
+        raise HTTPException(status_code=404, detail=f"Cliente con RUT {data.rut} no encontrado")
 
+    # Validar que el medidor no exista
     existe = db.query(models.Medidor).filter_by(codigo_medidor=data.codigo_medidor).first()
     if existe:
         raise HTTPException(status_code=400, detail="El código de medidor ya está registrado")
 
     obj = models.Medidor(
         codigo_medidor=data.codigo_medidor,
-        id_cliente=data.id_cliente,
+        id_cliente=cliente.id_cliente,
         direccion_suministro=data.direccion_suministro,
+        latitud=data.latitud,
+        longitud=data.longitud,
         estado=data.estado
     )
 
