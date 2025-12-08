@@ -41,7 +41,7 @@ Este proyecto es un backend desarrollado con FastAPI para la gestión de cliente
 ## Funcionalidades principales
 
 ### Clientes
-- Crear, listar, actualizar y eliminar clientes.
+- Crear, listar, actualizar, eliminar, login, cambio de contraseña de clientes.
 - Validación de campos como RUT versión Chile según módulo 11.
 - Gestión de relaciones con medidores y boletas.
 - Relación 1:N con medidores.
@@ -59,8 +59,8 @@ Este proyecto es un backend desarrollado con FastAPI para la gestión de cliente
 
 ### Boletas
 - Generación de boletas con cálculo de consumo, tarifa base, cargos, IVA y total.
-- Listado de boletas por cliente y periodo (año y mes).
-- Restricción de boleta única por cliente + año + mes.
+- Listado de boletas por Rut cliente y periodo (año y mes).
+- Restricción de boleta única por Rut cliente + año + mes.
 
 
 
